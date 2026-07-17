@@ -1,0 +1,25 @@
+{
+  "name": "screen-vocab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "屏词 — 从屏幕/字幕轨/粘贴取词，英→中释义；耳机 TTS、眼镜语音、头带回读；戒指手杖手表",
+  "scripts": {
+    "build": "node scripts/build-web.js",
+    "start": "npm run build && npx --yes serve www -p 5191",
+    "test": "node --test test/*.test.js",
+    "sync:android": "npm run build && npx cap sync android",
+    "open:android": "npx cap open android",
+    "apk:debug": "npm run sync:android && cd android && JAVA_HOME=\"${JAVA_HOME:-/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home}\" ./gradlew assembleDebug",
+    "mobile:android": "npm run sync:android && npm run open:android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/status-bar": "^6.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0",
+    "esbuild": "^0.24.0"
+  }
+}

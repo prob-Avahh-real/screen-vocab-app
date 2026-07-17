@@ -1,0 +1,20 @@
+{
+  "appId": "com.skat.screenvocab",
+  "appName": "屏词",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "android": {
+    "allowMixedContent": true
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0f1a24"
+    }
+  }
+}

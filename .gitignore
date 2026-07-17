@@ -5,6 +5,9 @@ android/app/build/
 android/build/
 android/capacitor-cordova-android-plugins/build
 android/local.properties
+ios/App/Pods/
+ios/App/App/public/
+ios/DerivedData/
 *.apk
 *.ipa
 .idea/

@@ -34,6 +34,16 @@
       max-width: 720px;
       margin: 0 auto;
     }
+    #device-pill {
+      display: inline-block;
+      font-size: 0.7rem;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
     h1 {
       font-family: var(--font-display);
       font-weight: 600;
@@ -157,17 +167,94 @@
     }
     .help code { color: var(--accent); }
 
-    /* Watch */
+    /* iPhone / iPod — compact phone */
+    body.device-iphone,
+    body.device-ipod {
+      max-width: 560px;
+      padding: 10px 12px 24px;
+    }
+    body.device-iphone .word,
+    body.device-ipod .word { font-size: 1.45rem; }
+    body.device-ipod h1 { font-size: 1.55rem; }
+
+    /* iPad — two-column feel, wider canvas */
+    body.device-ipad {
+      max-width: 980px;
+      padding: 20px 28px 36px;
+    }
+    body.device-ipad h1 { font-size: 2.2rem; }
+    body.device-ipad .layout-wide {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 28px;
+      align-items: start;
+    }
+    body.device-ipad .layout-wide > .primary { grid-column: 1; }
+    body.device-ipad .layout-wide > .secondary { grid-column: 2; }
+    body.device-ipad video { max-height: 280px; }
+    body.device-ipad .word { font-size: 1.9rem; }
+    body.device-ipad button { padding: 10px 14px; }
+
+    /* MacBook / Mac Catalyst — desktop density */
+    body.device-mac {
+      max-width: 1100px;
+      padding: 28px 36px 48px;
+    }
+    body.device-mac h1 { font-size: 2.4rem; letter-spacing: 0.06em; }
+    body.device-mac .tagline { font-size: 1rem; }
+    body.device-mac .layout-wide {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) minmax(360px, 1.1fr);
+      gap: 24px 40px;
+      align-items: start;
+    }
+    body.device-mac .layout-wide > .primary { grid-column: 1; }
+    body.device-mac .layout-wide > .secondary { grid-column: 2; }
+    body.device-mac video { max-height: 320px; }
+    body.device-mac .word { font-size: 2rem; }
+    body.device-mac .help { font-size: 0.85rem; max-width: 72ch; }
+    body.device-mac button:hover { border-color: var(--accent); }
+
+    /* Apple Watch — compact companion UI */
+    body.device-watch {
+      padding: 4px 6px;
+      max-width: none;
+    }
+    body.device-watch h1 { font-size: 0.95rem; margin: 0; }
+    body.device-watch .tagline,
+    body.device-watch .help,
+    body.device-watch [data-panel],
+    body.device-watch .hide-watch,
+    body.device-watch .mode-row,
+    body.device-watch #device-pill,
+    body.device-watch .badges { display: none !important; }
+    body.device-watch .word { font-size: 1.05rem; }
+    body.device-watch .field h3 { font-size: 0.6rem; }
+    body.device-watch .field p { font-size: 0.72rem; line-height: 1.35; }
+    body.device-watch #btn-extract { width: 100%; padding: 8px; font-size: 0.8rem; }
+    body.device-watch .line-preview { font-size: 0.68rem; min-height: auto; padding: 4px 6px; margin: 4px 0; }
+    body.device-watch #btn-prev,
+    body.device-watch #btn-next,
+    body.device-watch #btn-stop { display: none; }
+    body.device-watch #hud { font-size: 0.62rem; min-height: 0.9em; }
+    body.device-watch .status { font-size: 0.65rem; padding: 2px 6px; }
+    body.device-watch .card { padding: 6px 0 4px; }
+    body.device-watch .field:nth-child(n+3) { display: none; }
+
     @media (max-width: 280px), (max-height: 300px) {
-      body { padding: 6px; }
-      h1 { font-size: 1.1rem; margin: 0; }
-      .tagline, .help, [data-panel], .hide-watch, .mode-row { display: none !important; }
-      .word { font-size: 1.15rem; }
-      .field h3 { font-size: 0.65rem; }
-      .field p { font-size: 0.8rem; }
-      #btn-extract { width: 100%; padding: 10px; }
-      .line-preview { font-size: 0.75rem; min-height: auto; padding: 6px; }
-      .badges { display: none; }
+      body { padding: 4px 6px; max-width: none; }
+      h1 { font-size: 0.95rem; margin: 0; }
+      .tagline, .help, [data-panel], .hide-watch, .mode-row, #device-pill, .badges { display: none !important; }
+      .word { font-size: 1.05rem; }
+      .field h3 { font-size: 0.6rem; }
+      .field p { font-size: 0.72rem; line-height: 1.35; }
+      #btn-extract { width: 100%; padding: 8px; font-size: 0.8rem; }
+      .line-preview { font-size: 0.68rem; min-height: auto; padding: 4px 6px; margin: 4px 0; }
+      #btn-prev, #btn-next, #btn-stop { display: none; }
+      #hud { font-size: 0.62rem; min-height: 0.9em; }
+      .status { font-size: 0.65rem; padding: 2px 6px; }
+      .card { padding: 6px 0 4px; }
+      .field:nth-child(n+3) { display: none; }
     }
 
     /* Glasses / narrow HUD */
@@ -190,52 +277,58 @@
 </head>
 <body>
   <div id="hud">HUD · 等待字幕</div>
-  <h1>屏词</h1>
+  <h1>屏词 <span id="device-pill">…</span></h1>
   <p class="tagline">屏幕 / 字幕轨 / 粘贴取词 · 英→中 · 有字幕才可触发</p>
   <div id="status" class="status status-warn">无字幕</div>
 
-  <div class="row mode-row">
-    <button type="button" data-mode="screen">屏幕</button>
-    <button type="button" data-mode="srt">字幕轨</button>
-    <button type="button" data-mode="paste" class="active">粘贴</button>
-  </div>
+  <div class="layout-wide">
+    <div class="primary">
+      <div class="row mode-row">
+        <button type="button" data-mode="screen">屏幕</button>
+        <button type="button" data-mode="srt">字幕轨</button>
+        <button type="button" data-mode="paste" class="active">粘贴</button>
+      </div>
 
-  <div data-panel="screen">
-    <div class="row">
-      <button type="button" id="btn-share">开始屏幕共享</button>
-      <label class="file-btn">选截图 OCR<input id="input-screenshot" type="file" accept="image/*" /></label>
+      <div data-panel="screen">
+        <div class="row">
+          <button type="button" id="btn-share">开始屏幕共享</button>
+          <label class="file-btn">选截图 OCR<input id="input-screenshot" type="file" accept="image/*" /></label>
+        </div>
+      </div>
+
+      <div data-panel="srt" hidden>
+        <div class="row">
+          <label class="file-btn">导入 SRT/VTT<input id="input-srt" type="file" accept=".srt,.vtt,text/vtt" /></label>
+          <label class="file-btn">可选视频<input id="input-video" type="file" accept="video/*" /></label>
+        </div>
+        <label>时间轴 <span id="srt-time">0s</span>
+          <input id="srt-scrub" type="range" min="0" max="1" step="0.1" value="0" />
+        </label>
+        <video id="local-video" controls playsinline></video>
+      </div>
+
+      <div data-panel="paste">
+        <textarea id="paste-text" placeholder="粘贴英文字幕句…"></textarea>
+        <div class="row">
+          <label class="file-btn">图片 OCR<input id="input-paste-image" type="file" accept="image/*" /></label>
+        </div>
+      </div>
+
+      <div class="line-preview" id="line-preview">（无当前字幕）</div>
+
+      <div class="row">
+        <button type="button" id="btn-extract" disabled>取词</button>
+        <button type="button" id="btn-prev">上一词</button>
+        <button type="button" id="btn-next">下一词</button>
+        <button type="button" id="btn-read">朗读</button>
+        <button type="button" id="btn-stop">停止</button>
+      </div>
+    </div>
+
+    <div class="secondary">
+      <div id="cards"></div>
     </div>
   </div>
-
-  <div data-panel="srt" hidden>
-    <div class="row">
-      <label class="file-btn">导入 SRT/VTT<input id="input-srt" type="file" accept=".srt,.vtt,text/vtt" /></label>
-      <label class="file-btn">可选视频<input id="input-video" type="file" accept="video/*" /></label>
-    </div>
-    <label>时间轴 <span id="srt-time">0s</span>
-      <input id="srt-scrub" type="range" min="0" max="1" step="0.1" value="0" />
-    </label>
-    <video id="local-video" controls playsinline></video>
-  </div>
-
-  <div data-panel="paste">
-    <textarea id="paste-text" placeholder="粘贴英文字幕句…"></textarea>
-    <div class="row">
-      <label class="file-btn">图片 OCR<input id="input-paste-image" type="file" accept="image/*" /></label>
-    </div>
-  </div>
-
-  <div class="line-preview" id="line-preview">（无当前字幕）</div>
-
-  <div class="row">
-    <button type="button" id="btn-extract" disabled>取词</button>
-    <button type="button" id="btn-prev">上一词</button>
-    <button type="button" id="btn-next">下一词</button>
-    <button type="button" id="btn-read">朗读</button>
-    <button type="button" id="btn-stop">停止</button>
-  </div>
-
-  <div id="cards"></div>
 
   <div class="badges">
     <span class="badge" id="ring-badge">戒指 · 点击启用</span>
@@ -247,6 +340,7 @@
 
   <div class="help">
     <strong>触发闸门：</strong>仅当检测到字幕且源就绪、非忙碌时，「取词」与戒指晃动/手杖敲击/语音「取词」才会生效；否则静默忽略。<br />
+    <strong>设备：</strong>iPhone / iPod 紧凑布局 · iPad / MacBook 双栏 · Apple Watch 精简（词+释义+取词）<br />
     <strong>键盘：</strong><code>E</code> 取词 · <code>←/→</code> 翻卡片 · <code>R</code> 朗读<br />
     <strong>戒指：</strong>晃动取词 · 左右倾翻词 · 上倾朗读<br />
     <strong>手杖：</strong>敲击取词<br />

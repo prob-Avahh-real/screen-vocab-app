@@ -732,6 +732,61 @@ function setupHeadband(actions) {
   };
 }
 
+// src/device-profile.js
+function detectDeviceKind(env = {}) {
+  const hasWindow = typeof window !== "undefined";
+  const hasNav = typeof navigator !== "undefined";
+  const ua = env.userAgent ?? (hasNav ? navigator.userAgent : "") ?? "";
+  const platform = env.platform ?? (hasNav ? navigator.platform : "") ?? "";
+  const maxTouchPoints = env.maxTouchPoints ?? (hasNav ? navigator.maxTouchPoints || 0 : 0);
+  const width = env.width ?? (hasWindow ? Math.min(window.innerWidth, screen.width || window.innerWidth) : 0);
+  const height = env.height ?? (hasWindow ? Math.min(window.innerHeight, screen.height || window.innerHeight) : 0);
+  if (!ua && !width && !height && !hasWindow) return "other";
+  const minSide = Math.min(width || 9999, height || 9999);
+  const maxSide = Math.max(width || 0, height || 0);
+  if (width > 0 && height > 0 && (width <= 280 || height <= 300 || maxSide <= 400 && minSide <= 240)) {
+    return "watch";
+  }
+  if (/iPod/i.test(ua)) return "ipod";
+  if (/iPad/i.test(ua)) return "ipad";
+  if (/iPhone/i.test(ua)) return "iphone";
+  const isMacUa = /Macintosh|Mac OS X|MacIntel/i.test(ua) || /Mac/i.test(platform);
+  if (isMacUa && maxTouchPoints > 1) return "ipad";
+  if (isMacUa) return "mac";
+  if (maxTouchPoints === 0 && minSide >= 700 && maxSide >= 1e3) return "mac";
+  if (minSide >= 744 || minSide >= 600 && maxSide >= 900) return "ipad";
+  if (width > 0 && minSide >= 320 && maxSide < 900) return "iphone";
+  return "other";
+}
+function deviceLabel(kind) {
+  switch (kind) {
+    case "iphone":
+      return "iPhone";
+    case "ipad":
+      return "iPad";
+    case "ipod":
+      return "iPod";
+    case "mac":
+      return "MacBook";
+    case "watch":
+      return "Apple Watch";
+    default:
+      return "\u8BBE\u5907";
+  }
+}
+function applyDeviceProfile() {
+  const kind = detectDeviceKind();
+  if (typeof document === "undefined") return kind;
+  const body = document.body;
+  ["iphone", "ipad", "ipod", "mac", "watch", "other"].forEach((k) => {
+    body.classList.remove(`device-${k}`);
+  });
+  body.classList.add(`device-${kind}`);
+  body.dataset.device = kind;
+  if (kind === "watch") body.classList.add("watch");
+  return kind;
+}
+
 // src/app.js
 var state = {
   /** @type {Mode} */
@@ -1043,6 +1098,9 @@ function wireSmartOutputs() {
   });
 }
 function init() {
+  const kind = applyDeviceProfile();
+  const pill = $("device-pill");
+  if (pill) pill.textContent = deviceLabel(kind);
   document.querySelectorAll("[data-panel]").forEach((panel) => {
     panel.hidden = panel.getAttribute("data-panel") !== "paste";
   });
@@ -1052,6 +1110,11 @@ function init() {
   setMode("paste");
   renderCards();
   refreshGate();
+  setHud($("hud"), `HUD \xB7 ${deviceLabel(kind)} \xB7 \u7B49\u5F85\u5B57\u5E55`);
+  window.addEventListener("resize", () => {
+    const k = applyDeviceProfile();
+    if (pill) pill.textContent = deviceLabel(k);
+  });
 }
 init();
 //# sourceMappingURL=app.js.map

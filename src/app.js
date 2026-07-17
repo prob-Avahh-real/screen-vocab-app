@@ -14,6 +14,7 @@ import {
   speakCard,
   stopSpeak,
 } from './smart-outputs.js';
+import { applyDeviceProfile, deviceLabel } from './device-profile.js';
 
 /** @typedef {'screen' | 'srt' | 'paste'} Mode */
 
@@ -325,6 +326,10 @@ function wireSmartOutputs() {
 }
 
 function init() {
+  const kind = applyDeviceProfile();
+  const pill = $('device-pill');
+  if (pill) pill.textContent = deviceLabel(kind);
+
   // Hide non-active panels initially
   document.querySelectorAll('[data-panel]').forEach((panel) => {
     panel.hidden = panel.getAttribute('data-panel') !== 'paste';
@@ -335,6 +340,12 @@ function init() {
   setMode('paste');
   renderCards();
   refreshGate();
+  setHud($('hud'), `HUD · ${deviceLabel(kind)} · 等待字幕`);
+
+  window.addEventListener('resize', () => {
+    const k = applyDeviceProfile();
+    if (pill) pill.textContent = deviceLabel(k);
+  });
 }
 
 init();

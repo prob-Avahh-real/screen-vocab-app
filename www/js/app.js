@@ -733,30 +733,79 @@ function setupHeadband(actions) {
 }
 
 // src/device-profile.js
-function detectDeviceKind(env = {}) {
+var ALL_KINDS = [
+  "iphone",
+  "ipad",
+  "ipod",
+  "mac",
+  "applewatch",
+  "appletv",
+  "vision",
+  "android-phone",
+  "android-tablet",
+  "wearos",
+  "android-tv",
+  "chromeos",
+  "foldable",
+  "other"
+];
+var ALL_FORMS = ["phone", "tablet", "watch", "tv", "desktop", "foldable", "other"];
+var ALL_FAMILIES = ["apple", "android", "other"];
+function detectDeviceProfile(env = {}) {
   const hasWindow = typeof window !== "undefined";
   const hasNav = typeof navigator !== "undefined";
-  const ua = env.userAgent ?? (hasNav ? navigator.userAgent : "") ?? "";
-  const platform = env.platform ?? (hasNav ? navigator.platform : "") ?? "";
-  const maxTouchPoints = env.maxTouchPoints ?? (hasNav ? navigator.maxTouchPoints || 0 : 0);
-  const width = env.width ?? (hasWindow ? Math.min(window.innerWidth, screen.width || window.innerWidth) : 0);
-  const height = env.height ?? (hasWindow ? Math.min(window.innerHeight, screen.height || window.innerHeight) : 0);
-  if (!ua && !width && !height && !hasWindow) return "other";
+  const synthetic = Object.keys(env).length > 0;
+  const ua = env.userAgent ?? (synthetic ? "" : hasNav ? navigator.userAgent : "") ?? "";
+  const platform = env.platform ?? (synthetic ? "" : hasNav ? navigator.platform : "") ?? "";
+  const maxTouchPoints = env.maxTouchPoints ?? (synthetic ? 0 : hasNav ? navigator.maxTouchPoints || 0 : 0);
+  const width = env.width ?? (synthetic ? 0 : hasWindow ? Math.min(window.innerWidth, screen.width || window.innerWidth) : 0);
+  const height = env.height ?? (synthetic ? 0 : hasWindow ? Math.min(window.innerHeight, screen.height || window.innerHeight) : 0);
+  const foldSegments = env.foldSegments ?? (!synthetic && hasWindow && typeof window.matchMedia === "function" && (window.matchMedia("(horizontal-viewport-segments: 2)").matches || window.matchMedia("(vertical-viewport-segments: 2)").matches));
+  if (!ua && !width && !height && (synthetic || !hasWindow)) {
+    return profile("other", "other", "other");
+  }
   const minSide = Math.min(width || 9999, height || 9999);
   const maxSide = Math.max(width || 0, height || 0);
-  if (width > 0 && height > 0 && (width <= 280 || height <= 300 || maxSide <= 400 && minSide <= 240)) {
-    return "watch";
+  const isAndroid = /Android/i.test(ua);
+  const isAppleMobile = /iPhone|iPad|iPod/i.test(ua);
+  if (/Watch|Wear ?OS|Android Wear|SM-R|Pixel Watch/i.test(ua) || width > 0 && height > 0 && (width <= 280 || height <= 300 || maxSide <= 400 && minSide <= 240)) {
+    if (isAndroid || /Wear/i.test(ua)) return profile("android", "watch", "wearos");
+    return profile("apple", "watch", "applewatch");
   }
-  if (/iPod/i.test(ua)) return "ipod";
-  if (/iPad/i.test(ua)) return "ipad";
-  if (/iPhone/i.test(ua)) return "iphone";
+  if (/Apple ?TV|TVOS|AppleTV/i.test(ua)) return profile("apple", "tv", "appletv");
+  if (/Vision|xrOS|Reality/i.test(ua)) return profile("apple", "desktop", "vision");
+  if (/Android TV|SMART-TV|SmartTV|BRAVIA|AFT[A-Z]|GoogleTV|MIBOX|TV Box/i.test(ua) || /Android/i.test(ua) && /TV/i.test(ua) && minSide >= 540) {
+    return profile("android", "tv", "android-tv");
+  }
+  if (foldSegments || /Fold|Z Fold|Surface Duo|Galaxy Z|hinge/i.test(ua) || width > 0 && height > 0 && maxSide / Math.max(minSide, 1) >= 2.1 && minSide >= 500) {
+    if (isAndroid || !isAppleMobile) return profile("android", "foldable", "foldable");
+  }
+  if (/CrOS|Chromebook/i.test(ua)) return profile("android", "desktop", "chromeos");
+  if (/iPod/i.test(ua)) return profile("apple", "phone", "ipod");
+  if (/iPad/i.test(ua)) return profile("apple", "tablet", "ipad");
+  if (/iPhone/i.test(ua)) return profile("apple", "phone", "iphone");
   const isMacUa = /Macintosh|Mac OS X|MacIntel/i.test(ua) || /Mac/i.test(platform);
-  if (isMacUa && maxTouchPoints > 1) return "ipad";
-  if (isMacUa) return "mac";
-  if (maxTouchPoints === 0 && minSide >= 700 && maxSide >= 1e3) return "mac";
-  if (minSide >= 744 || minSide >= 600 && maxSide >= 900) return "ipad";
-  if (width > 0 && minSide >= 320 && maxSide < 900) return "iphone";
-  return "other";
+  if (isMacUa && maxTouchPoints > 1) return profile("apple", "tablet", "ipad");
+  if (isMacUa) return profile("apple", "desktop", "mac");
+  if (isAndroid) {
+    if (minSide >= 600 || minSide >= 560 && maxSide >= 900) {
+      return profile("android", "tablet", "android-tablet");
+    }
+    return profile("android", "phone", "android-phone");
+  }
+  if (maxTouchPoints === 0 && minSide >= 700 && maxSide >= 1e3) {
+    return profile("other", "desktop", "chromeos");
+  }
+  if (minSide >= 744 || minSide >= 600 && maxSide >= 900) {
+    return profile("other", "tablet", "android-tablet");
+  }
+  if (width > 0 && minSide >= 320 && maxSide < 900) {
+    return profile("other", "phone", "android-phone");
+  }
+  return profile("other", "other", "other");
+}
+function profile(family, form, kind) {
+  return { family, form, kind, label: deviceLabel(kind) };
 }
 function deviceLabel(kind) {
   switch (kind) {
@@ -768,23 +817,44 @@ function deviceLabel(kind) {
       return "iPod";
     case "mac":
       return "MacBook";
-    case "watch":
+    case "applewatch":
       return "Apple Watch";
+    case "appletv":
+      return "Apple TV";
+    case "vision":
+      return "Vision";
+    case "android-phone":
+      return "\u5B89\u5353\u624B\u673A";
+    case "android-tablet":
+      return "\u5B89\u5353\u5E73\u677F";
+    case "wearos":
+      return "Wear OS";
+    case "android-tv":
+      return "Android TV";
+    case "chromeos":
+      return "ChromeOS";
+    case "foldable":
+      return "\u6298\u53E0\u5C4F";
     default:
       return "\u8BBE\u5907";
   }
 }
 function applyDeviceProfile() {
-  const kind = detectDeviceKind();
-  if (typeof document === "undefined") return kind;
+  const p = detectDeviceProfile();
+  if (typeof document === "undefined") return p;
   const body = document.body;
-  ["iphone", "ipad", "ipod", "mac", "watch", "other"].forEach((k) => {
-    body.classList.remove(`device-${k}`);
-  });
-  body.classList.add(`device-${kind}`);
-  body.dataset.device = kind;
-  if (kind === "watch") body.classList.add("watch");
-  return kind;
+  ALL_FAMILIES.forEach((f) => body.classList.remove(`eco-${f}`));
+  ALL_FORMS.forEach((f) => body.classList.remove(`form-${f}`));
+  ALL_KINDS.forEach((k) => body.classList.remove(`device-${k}`));
+  body.classList.remove("device-watch", "watch");
+  body.classList.add(`eco-${p.family}`, `form-${p.form}`, `device-${p.kind}`);
+  body.dataset.eco = p.family;
+  body.dataset.form = p.form;
+  body.dataset.device = p.kind;
+  if (p.form === "watch") {
+    body.classList.add("device-watch", "watch");
+  }
+  return p;
 }
 
 // src/app.js
@@ -1098,9 +1168,9 @@ function wireSmartOutputs() {
   });
 }
 function init() {
-  const kind = applyDeviceProfile();
+  const profile2 = applyDeviceProfile();
   const pill = $("device-pill");
-  if (pill) pill.textContent = deviceLabel(kind);
+  if (pill) pill.textContent = profile2.label;
   document.querySelectorAll("[data-panel]").forEach((panel) => {
     panel.hidden = panel.getAttribute("data-panel") !== "paste";
   });
@@ -1110,10 +1180,10 @@ function init() {
   setMode("paste");
   renderCards();
   refreshGate();
-  setHud($("hud"), `HUD \xB7 ${deviceLabel(kind)} \xB7 \u7B49\u5F85\u5B57\u5E55`);
+  setHud($("hud"), `HUD \xB7 ${profile2.label} \xB7 \u7B49\u5F85\u5B57\u5E55`);
   window.addEventListener("resize", () => {
-    const k = applyDeviceProfile();
-    if (pill) pill.textContent = deviceLabel(k);
+    const p = applyDeviceProfile();
+    if (pill) pill.textContent = p.label;
   });
 }
 init();

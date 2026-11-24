@@ -12,3 +12,15 @@ ios/DerivedData/
 *.ipa
 .idea/
 .vscode/
+# Publish hygiene & bloat exclusions
+.env
+.env.*
+!.env.example
+.npm-cache/
+.build/
+DerivedData/
+.gradle/
+__pycache__/
+.venv/
+coverage/
+*.aab
